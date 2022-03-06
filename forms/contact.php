@@ -1,41 +1,73 @@
 <?php
-  /**
-  * Requires the "PHP Email Form" library
-  * The "PHP Email Form" library is available only in the pro version of the template
-  * The library should be uploaded to: vendor/php-email-form/php-email-form.php
-  * For more info and help: https://bootstrapmade.com/php-email-form/
-  */
 
-  // Replace contact@example.com with your real receiving email address
-  $receiving_email_address = 'contact@example.com';
+  require("class.phpmailer.php");
+  require("class.smtp.php");
 
-  if( file_exists($php_email_form = '../assets/vendor/php-email-form/php-email-form.php' )) {
-    include( $php_email_form );
-  } else {
-    die( 'Unable to load the "PHP Email Form" Library!');
-  }
+  $name = $_POST["name"];
+  $email = $_POST["email"];
+  $subject = $_POST["subject"];
+  $message = $_POST["message"];
 
-  $contact = new PHP_Email_Form;
-  $contact->ajax = true;
+  $EmailTo = "info@g2r.com.ar";
+  //$EmailTo = "santiagomauhourat@hotmail.com";
+  $Subject = "Contacto Web - Greencloud.com.ar";
   
-  $contact->to = $receiving_email_address;
-  $contact->from_name = $_POST['name'];
-  $contact->from_email = $_POST['email'];
-  $contact->subject = $_POST['subject'];
+  // Datos de la cuenta de correo utilizada para enviar vía SMTP
+  $smtpHost = "c1730360.ferozo.com";  // Dominio alternativo brindado en el email de alta 
+  $smtpUsuario = "info@greencloud.com.ar";  // Mi cuenta de correo
+  $smtpClave = "G3rman1971";  // Mi contraseña
 
-  // Uncomment below code if you want to use SMTP to send emails. You need to enter your correct SMTP credentials
-  /*
-  $contact->smtp = array(
-    'host' => 'example.com',
-    'username' => 'example',
-    'password' => 'pass',
-    'port' => '587'
-  );
-  */
+// prepare email body text
+$Body = "";
+$Body .= "Name: ";
+$Body .= $name;
+$Body .= "\n";
+$Body .= "Email: ";
+$Body .= $email;
+$Body .= "\n";
+$Body .= "Subject: ";
+$Body .= $subject;
+$Body .= "\n";
+$Body .= "Message: ";
+$Body .= $message;
+$Body .= "\n";
 
-  $contact->add_message( $_POST['name'], 'From');
-  $contact->add_message( $_POST['email'], 'Email');
-  $contact->add_message( $_POST['message'], 'Message', 10);
+$mail = new PHPMailer();
+$mail->IsSMTP();
+$mail->SMTPAuth = true;
+$mail->Port = 465; 
+$mail->SMTPSecure = 'ssl';
+$mail->IsHTML(true); 
+$mail->CharSet = "utf-8";
 
-  echo $contact->send();
+// VALORES A MODIFICAR //
+$mail->Host = $smtpHost; 
+$mail->Username = $smtpUsuario; 
+$mail->Password = $smtpClave;
+
+$mail->From = $email; // Email desde donde envío el correo.
+$mail->FromName = $name;
+$mail->AddAddress($EmailTo); // Esta es la dirección a donde enviamos los datos del formulario
+
+$mail->Subject = "Greencloud.com.ar - Contacto Web"; // Este es el titulo del email.
+$mensajeHtml = nl2br($Body);
+$mail->Body = "{$mensajeHtml} <br /><br />{$name}<br />{$email}"; // Texto del email en formato HTML
+$mail->AltBody = "{$Body} \n\n {$name} \n {$email}"; // Texto sin formato <HTML></HTML>
+
+
+// FIN - VALORES A MODIFICAR //
+
+$success = $mail->Send();   
+
+//redirect to success page
+if ($success && $errorMSG == ""){
+  echo "OK";
+}else{
+   if($errorMSG == ""){
+       echo "Ha ocurrido un error :(";
+   } else {
+       echo $errorMSG;
+   }
+}
+
 ?>
